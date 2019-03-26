@@ -51,7 +51,6 @@ type HttpClient struct {
 	limiter 	*Limiter
 
 	client		*http.Client
-	lock   		*sync.RWMutex
 }
 
 func NewHttpClient(reqPerSec int) *HttpClient {
