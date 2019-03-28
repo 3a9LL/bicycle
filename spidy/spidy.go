@@ -22,6 +22,7 @@ var (
 	logerr = log.New(os.Stderr, "", 0)
 )
 
+type SpidyResult <-chan string
 
 type Spidy struct {
 	targetURL			string
@@ -63,7 +64,7 @@ func New(targetURL string, maxDepth, maxBodySize, reqPerSec int) (*Spidy, error)
 	return s, nil
 }
 
-func (s *Spidy) Run() <-chan string {
+func (s *Spidy) Run() SpidyResult {
 	outChan := make(chan string, 1024*1024)
 
 	go func() {

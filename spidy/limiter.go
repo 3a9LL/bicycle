@@ -1,9 +1,8 @@
 package spidy
 
 import "time"
-
 type Limiter struct {
-	reqChanC	chan chan int
+	reqChanC	chan chan struct{}
 
 	rate		int
 	takenCount	int
@@ -11,7 +10,7 @@ type Limiter struct {
 
 func NewLimiter(rate int) *Limiter {
 	l := &Limiter{}
-	l.reqChanC		= make(chan chan int, 1024)
+	l.reqChanC		= make(chan chan struct{}, 1024)
 	l.takenCount	= 0
 	l.rate			= rate
 
@@ -21,28 +20,26 @@ func NewLimiter(rate int) *Limiter {
 
 func (l *Limiter) Service() {
 	c := <-l.reqChanC
+	ticker := time.NewTicker(1 * time.Second)
 	l.takenCount = 1
-	c <- 1
-	deadline := time.Now().Add(time.Second)
+	c <- struct{}{}
 	for {
 		select {
 		case c := <-l.reqChanC:
 			if l.takenCount >= l.rate{
-				time.Sleep(deadline.Sub(time.Now()))
+				<-ticker.C
 				l.takenCount = 0
-				deadline = time.Now().Add(time.Second)
 			}
 			l.takenCount++
-			c <- 1
-		case <-time.After(deadline.Sub(time.Now())):
+			c <- struct{}{}
+		case <-ticker.C:
 			l.takenCount = 0
-			deadline = time.Now().Add(time.Second)
 		}
 	}
 }
 
 func (l *Limiter) Take(){
-	c := make(chan int, 1)
+	c := make(chan struct{}, 1)
 	l.reqChanC <- c
 	<-c
 }

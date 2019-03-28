@@ -64,8 +64,8 @@ func main() {
 	spidy, err := spidy.New(cfg.targetURI, int(cfg.maxDepth), MaxBodySize, int(cfg.reqPerSec))
 	check(err)
 
-	c := spidy.Run()
-	for link := range c {
+	links := spidy.Run()
+	for link := range links {
 		fmt.Println(link)
 	}
 
